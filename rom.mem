@@ -1,14 +1,244 @@
-a9 // LDA #$FF
-ff
-8d // STA $0004 
-04
+d8 // Start: cld
+a9 // lda #0
 00
-a9 // lda #$01
+aa // tax
+a8 // tay
+ca // Clear_Stack: dex 
+9a // txs
+48 // pha
+d0 // bne Clear_Stack
+fb
+a9 // lda #$46
+46
+85 // sta COLUBK (Background Colour)
+09
+85 // sta AUDF0
+17
+85 // sta AUDC0
+15
+99 // Store_Loop: sta P0_Y, y
+80
+00
+c8 // iny
+10 // bpl Store_Loop
+fa
+a9 // lda #$87
+87
+85 // sta VBLANK
 01
-ee // LOOP: INC $0004 
-04
+0a // asl
+85 // Loop_Vsync: sta WSYNC
+02
+85 // sta VSYNC
 00
-4c // JMP $07F0 LOOP
+4a // lsr
+d0 // bne LoopVsync
+f9
+a9 // lda #35
+23
+8d // sta TIM64T
+96
+02
+a5 // Positions: lda Ball_X
+e8
+a0 // ldy #4
+04
+85 // Pos_Loop: sta WSYNC
+02
+85 // sta HMCR
+2b
+e9 // Div_Loop: sbc #15
+0f
+b0 // bcs Div_Loop
+fc
+49 // eor #7
 07
+0a // asl
+0a // asl
+0a // asl
+0a // asl
+99 // sta HMP0, Y
+20
+00
+99 // sta RESP0, Y
+10
+00
+85 // sta WSYNC
+02
+85 // sta HMOVE
+2a
+bd // lda Positions, X
+29
+f0 // Origin is F000
+e8 // iny
+88 // dey
+d0 // bne Pos_Loop
+e1
+ad // Vertical_Blank: lda INTIM
+84
+02
+10 // bpl Vertical-Blank
+01
+86 // stx VBLANK
+01
+a0 // ldy #192
+c0
+a9 // lda #%00000010
+02
+c4 // Picture: cpy P0_End
+82
+d0 // bne Skip_M0
+02
+85 // sta ENAM0
+1d
+c4 // Skip_M0: cpy P0_Y
+80
+d0 // bne Check_Ball
+02
+86 // stx ENAM0
+1d
+c4 // Check_Ball: cpy Ball_Y
+84
+d0 // bne No_Ball
+03
+85 // sta ENABL
+1f
+2c // .byte #$2c
+86 // stx ENABL
+1f
+c4 // Check_M1: cpy P1_End
+83
+d0 // bne Skip_M1
+02
+85 // sta ENAM1 
+1e
+c4 // Skip_M1: cpy P1_y
+81
+d0 // bne Done_M1
+02
+86 // stx ENAM1
+1e
+88 // Done_M1: dey
+85 // sta WSYNC
+02
+do // bne Picture
+da
+84 // sty ENAM0
+1d
+84 // sty ENAM1
+1e
+85 // sta VBLANK
+01
+a9 // lda #$2b
+2b
+8d // sta TIM64T
+96
+02
+24 // bit INPt4
+0c
+30 // bmi Buuton_Not_Pushed
+02
+84 // sty Game
+85
+a5 // Button_Not_pushed: lda Game
+85
+d0 // bne Skip_Logic
+3d
+a5 // lda Ball_Vertical
+86
+f0 // beq Move_Ball_down
+03
+e6 // inc Ball_y
+84
+2c // .byte 2c
+c6 // Move_Ball_Down: dec Ball_Y
+84
+a5 // Done_Moving_Ball: lda Ball_Y
+84
+c9 // cmp #180
+b4
+f0 // beq Store_Status
+05
+a5 // Check_Other_Wall: lda Ball_Y
+84
+d0 // bne No_CX_BL_PF
+03
+c8 // iny
+84 // Store_Status
+86
+a5 // No_CX_BL_PF: ldaBall_Hozizontal
+87
+f0 // beq Move_Ball_Left
+03
+c6 // dec Ball_X
+e8
+2c // .byte $2c
+e6 // Move_Ball_Left: inc Ball_x
+e8
+a9 // Done_Moving_Ball: lda #1
+01
+84 // sty AUDV0
+19
+24 // bit CXM0FB
+04
+50 // bvc Check_Other_Player
+03
+4a // lsr
+f0 // Check_Other_player: beq Store_LR_Status
+04
+24 // bit CXM1FB
+05
+50 // bvc Dont_Store_LR_STATUS
+06
+85 //Store_LR_Status: sta Ball Horizontal
+87
+85 // sta CXCLR
+2c
+46 // lsr AUDV0
+19
+a5 // Dont_Store_LR_Status: lda Ball_X
+e8
+f0 // beq Start_New_Round
+04
+c9 // Check_Other_X: cmp #160
+a0
+d0 // bne Done_Update_Score
+01
+00 // Start_New_Round: brk
+ad // Done_Update_Score: Skip_Logic: lda SWCHA
+02
+b4 // .check_stick_loop: ldy P0_y-1, X
+7f
+4a // lsr
+b0 // bcs /not_u[
+02
+c8 // iny
+c8 // iny
+4a // .not_up: lsr
+b0 // bcs .not_down
+02
+88 // dey
+88 // dey
+4a // .not_down: lsr
+4a // lsr
+94 // sty P0_Y-1. Y
+7f
+48 // pha
+98 // tya
+69 // adc #24
+18
+95 // sta P0_End-1, X
+81
+68 // pla
+ca // dex
+d0 // bne .check_stick_loop
+06
+ad // OverScan: lda INTIM
+84
+02
+10 // bpl OverScan
+fb
+4c // jmp $F018 Start_Frame
+18
 f0
 
