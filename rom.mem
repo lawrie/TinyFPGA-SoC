@@ -1,0 +1,14 @@
+a9 // LDA #$FF
+ff
+8d // STA $0004 
+04
+00
+a9 // lda #$01
+01
+ee // LOOP: INC $0004 
+04
+00
+4c // JMP $07F0 LOOP
+07
+f0
+

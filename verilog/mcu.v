@@ -77,7 +77,37 @@ module mcu (
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
     ///
-    /// RAM
+    /// TIA RAM
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    wire tia_stb_i;
+    wire tia_we_i;
+    wire [15:0] tia_adr_i;
+    wire [7:0] tia_dat_i;
+    wire tia_ack_o;
+    wire [7:0] tia_dat_o;
+
+    wb_ram #(
+        .WB_DATA_WIDTH(8),
+        .WB_ADDR_WIDTH(7),
+        .WB_ALWAYS_READ(0),
+        .RAM_DEPTH(128)
+    ) tia_ram (
+        .clk_i(clock),
+        .rst_i(reset),
+        .stb_i(tia_stb_i),
+        .we_i(tia_we_i),
+        .adr_i(tia_adr_i[6:0]),
+        .dat_i(tia_dat_i),
+        .ack_o(tia_ack_o),
+        .dat_o(tia_dat_o)
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    /// PIA RAM
     ///
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
@@ -90,15 +120,15 @@ module mcu (
 
     wb_ram #(
         .WB_DATA_WIDTH(8),
-        .WB_ADDR_WIDTH(9),
+        .WB_ADDR_WIDTH(7),
         .WB_ALWAYS_READ(0),
-        .RAM_DEPTH(512)
-    ) main_ram (
+        .RAM_DEPTH(128)
+    ) pia_ram (
         .clk_i(clock),
         .rst_i(reset),
         .stb_i(ram_stb_i),
         .we_i(ram_we_i),
-        .adr_i(ram_adr_i[8:0]),
+        .adr_i(ram_adr_i[6:0]),
         .dat_i(ram_dat_i),
         .ack_o(ram_ack_o),
         .dat_o(ram_dat_o)
@@ -143,7 +173,7 @@ module mcu (
     wb_bus #(
         .WB_DATA_WIDTH(8),
         .WB_ADDR_WIDTH(16),
-        .WB_NUM_SLAVES(2)
+        .WB_NUM_SLAVES(3)
     ) bus (
         // syscon
         .clk_i(clock),
@@ -157,16 +187,16 @@ module mcu (
         .mstr_ack_o(cpu_ack_i),
         .mstr_dat_o(cpu_dat_i),
 
-        // wishbone slave decode         RAM         ROM 
-        .bus_slv_addr_decode_value({16'h0000,   16'hF000}),
-        .bus_slv_addr_decode_mask ({16'hF000,   16'hF000}),
+        // wishbone slave decode         RAM         TIA         ROM
+        .bus_slv_addr_decode_value({16'h0080,   16'h0000,   16'hf000}),
+        .bus_slv_addr_decode_mask ({16'hFF80,   16'hFF80,   16'hf000}),
 
         // connection to wishbone slaves
-        .slv_stb_o                ({ram_stb_i,  rom_stb_i}),
-        .slv_we_o                 ({ram_we_i,   rom_we_i}),
-        .slv_adr_o                ({ram_adr_i,  rom_adr_i}),
-        .slv_dat_o                ({ram_dat_i,  rom_dat_i}),
-        .slv_ack_i                ({ram_ack_o,  rom_ack_o}),
-        .slv_dat_i                ({ram_dat_o,  rom_dat_o})
+        .slv_stb_o                ({ram_stb_i,  tia_stb_i,  rom_stb_i}),
+        .slv_we_o                 ({ram_we_i,   tia_we_i,   rom_we_i}),
+        .slv_adr_o                ({ram_adr_i,  tia_adr_i,  rom_adr_i}),
+        .slv_dat_o                ({ram_dat_i,  tia_dat_i,  rom_dat_i}),
+        .slv_ack_i                ({ram_ack_o,  tia_ack_o,  rom_ack_o}),
+        .slv_dat_i                ({ram_dat_o,  tia_dat_o,  rom_dat_o})
     );
 endmodule
