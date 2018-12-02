@@ -24,32 +24,41 @@ module wb_6502_bridge #(
     input                           write_enable,
     output                          ready
 );
+    reg req_in_progress;
+    reg [3:0] clk_div;
 
-    // Run CPU at 1Hz
-    reg [24:0] clk_div;
+    wire stall = req_in_progress && !ack_i;
+    wire req_initiated = !stall;
 
     // outputs to wb
-    assign stb_o = 1; // Always read data from address
+    assign stb_o = !ready;
+    //assign we_o = write_enable;
+    //assign adr_o = address_bus;
+    //assign dat_o = write_bus;
 
     // outputs to 6502
     assign read_bus = dat_i;
+    //assign ready = !req_in_progress;
     
     always @(posedge clk_i) begin
-        if (rst_i) begin
-           ready <= 1;
-           adr_o <= 0;
-           dat_o <= 0;
-           we_o <= 0;
-        end else begin
-          clk_div <= clk_div + 1;
-          ready <= (clk_div == 0); // Once per second
+        clk_div <= clk_div + 1;
+        ready <= (clk_div == 15);
 
-          // Register the CPU outputs
-          if (ready) begin
-            adr_o <= address_bus;
-            dat_o <= write_bus;
-            we_o <= write_enable;
-          end
+        if (ready) begin
+          adr_o <= address_bus;
+          dat_o <= write_bus;
+          we_o <= write_enable;
+        end
+
+        if (rst_i) begin
+            req_in_progress <= 0;
+
+        end else begin
+            if (req_in_progress && ack_i) begin
+                req_in_progress <= 0;
+            end else begin
+                req_in_progress <= 1;
+            end
         end
     end
 endmodule

@@ -93,37 +93,6 @@ wire [7:0]   Y = AXYS[SEL_Y];           // Y register
 wire [7:0]   S = AXYS[SEL_S];           // Stack pointer 
 `endif
 
-// NOTE: FPGA registers are initialized to '0' by default, but we need to
-//       tell the simulator that or we will get X's propogated everywhere
-initial begin
-    AB = 0; 
-    PC = 0;
-    ABL = 0; 
-    ABH = 0; 
-    DIHOLD = 0;
-    DIHOLD_valid = 0;
-    IRHOLD = 0;
-    IRHOLD_valid = 0;
-    AXYS[0] = 0;
-    AXYS[1] = 0;
-    AXYS[2] = 0;
-    AXYS[3] = 0;
-    C = 0;
-    Z = 0;
-    I = 0;
-    D = 0;
-    V = 0;
-    N = 0;
-    AI = 0;
-    BI = 0;
-    DO = 0;
-    WE = 0;
-    CI = 0;
-    NMI_edge = 0;
-    regsel = 0;
-end
-
-
 wire [7:0] P = { N, V, 2'b11, D, I, Z, C };
 
 /*

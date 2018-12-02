@@ -4,7 +4,7 @@
 module wb_ram #(
     parameter WB_DATA_WIDTH = 8,
     parameter WB_ADDR_WIDTH = 9,
-    parameter WB_ALWAYS_READ = 1,
+    parameter WB_ALWAYS_READ = 0,
     parameter RAM_DEPTH = 512
 ) (
     // wishbone interface
@@ -24,6 +24,13 @@ module wb_ram #(
     wire valid_cmd = !rst_i && stb_i;
     wire valid_write_cmd = valid_cmd && we_i;
     wire valid_read_cmd = valid_cmd && !we_i;
+
+    integer j;
+    initial begin 
+        for (j = 0; j < 512; j = j + 1) begin 
+           ram[j] <= 0; 
+        end
+    end
 
     always @(posedge clk_i) begin
         if (valid_read_cmd || WB_ALWAYS_READ) begin

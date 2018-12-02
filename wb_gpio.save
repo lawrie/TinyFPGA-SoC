@@ -3,7 +3,7 @@
  */
 module wb_gpio #(
     parameter WB_DATA_WIDTH = 8,
-    parameter WB_ADDR_WIDTH = 2
+    parameter WB_ADDR_WIDTH = 2 
 ) (
     // wishbone interface
     input                           clk_i,
@@ -18,7 +18,8 @@ module wb_gpio #(
     output reg [WB_DATA_WIDTH-1:0]  dat_o,
 
     // gpio interface
-    inout [WB_DATA_WIDTH-1:0]       gpio
+    inout [WB_DATA_WIDTH-1:0]       gpio,
+    output                          led
 );
     initial ack_o = 0;
     initial dat_o = 0;
@@ -26,6 +27,17 @@ module wb_gpio #(
     reg [WB_DATA_WIDTH-1:0] data_direction_register = 0;
     reg [WB_DATA_WIDTH-1:0] input_data_register = 0;
     reg [WB_DATA_WIDTH-1:0] output_data_register = 0;
+    wire [WB_DATA_WIDTH-1:0] gpio_input;
+ 
+    SB_IO #(
+        .PIN_TYPE(6'b 1010_01),
+        .PULLUP(1'b 0)
+    ) ios [WB_DATA_WIDTH-1:0] (
+        .PACKAGE_PIN(gpio),
+        .OUTPUT_ENABLE(data_direction_register),
+        .D_OUT_0(output_data_register),
+        .D_IN_0(gpio_input)
+    );
 
     wire valid_cmd = !rst_i && stb_i;
     wire valid_write_cmd = valid_cmd && we_i;
@@ -34,7 +46,7 @@ module wb_gpio #(
     // handle wishbone interface 
     always @(posedge clk_i) begin
         // always flop input data
-        input_data_register <= gpio;
+        input_data_register <= gpio_input;
 
         // register read path
         if (valid_read_cmd) begin
@@ -55,6 +67,7 @@ module wb_gpio #(
 
         // register write path
         if (valid_write_cmd) begin
+            led <= 1;
             case (adr_i)
                 0: begin
                     data_direction_register <= dat_i;
@@ -70,11 +83,4 @@ module wb_gpio #(
         ack_o <= valid_cmd;
     end
 
-    // handle gpio
-    genvar i;
-    generate  
-        for (i = 0; i < WB_DATA_WIDTH; i = i + 1) begin
-            assign gpio[i] = data_direction_register[i] ? output_data_register[i] : 1'bz;
-        end
-    endgenerate
 endmodule

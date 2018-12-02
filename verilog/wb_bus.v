@@ -38,19 +38,26 @@ module wb_bus #(
     input  [WB_NUM_SLAVES-1:0]                  slv_ack_i,
     input  [(WB_DATA_WIDTH*WB_NUM_SLAVES)-1:0]  slv_dat_i
 );
-    wor mstr_stall_o_wor;
-    wor mstr_ack_o_wor;
-    wor [WB_DATA_WIDTH-1:0] mstr_dat_o_wor;
+    wire [(WB_DATA_WIDTH*WB_NUM_SLAVES)-1:0] mstr_dat_o_wor;
+    wire [WB_NUM_SLAVES-1:0] mstr_ack_o_wor;
+    wire [WB_NUM_SLAVES-1:0] mstr_stall_o_wor;
 
-    assign mstr_stall_o = mstr_stall_o_wor;
-    assign mstr_ack_o = mstr_ack_o_wor;
-    assign mstr_dat_o = mstr_dat_o_wor;
+    assign mstr_stall_o = |mstr_stall_o_wor;
+    assign mstr_ack_o = |mstr_ack_o_wor;
 
     wire [WB_NUM_SLAVES-1:0] req_slv_select;
     reg  [WB_NUM_SLAVES-1:0] ack_slv_select;
 
+    integer j;
+
     always @(posedge clk_i) begin
         ack_slv_select <= req_slv_select;
+
+        for(j=0;j<WB_NUM_SLAVES;j = j + 1) begin
+          if (ack_slv_select[j]) begin
+            mstr_dat_o <= mstr_dat_o_wor[j * WB_DATA_WIDTH +: WB_DATA_WIDTH];
+          end
+        end
     end
 
     genvar i;
@@ -70,9 +77,10 @@ module wb_bus #(
             assign slv_dat_o[i * WB_DATA_WIDTH +: WB_DATA_WIDTH] = mstr_dat_i;
 
             // drive master wor signals
-            assign mstr_stall_o_wor = ack_slv_select[i] ? slv_stall_i[i] : 0;
-            assign mstr_ack_o_wor = ack_slv_select[i] ? slv_ack_i[i] : 0;
-            assign mstr_dat_o_wor = ack_slv_select[i] ? slv_dat_i[i * WB_DATA_WIDTH +: WB_DATA_WIDTH] : 0;
+            assign mstr_stall_o_wor[i] = ack_slv_select[i] ? slv_stall_i[i] : 0;
+            assign mstr_ack_o_wor[i] = ack_slv_select[i] ? slv_ack_i[i] : 0;
+            assign mstr_dat_o_wor[i * WB_DATA_WIDTH +: WB_DATA_WIDTH] = 
+                    ack_slv_select[i] ? slv_dat_i[i * WB_DATA_WIDTH +: WB_DATA_WIDTH] : 0;
         end
     endgenerate
 endmodule

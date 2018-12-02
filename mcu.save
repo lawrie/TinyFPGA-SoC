@@ -1,24 +1,32 @@
 module mcu (
     input clock,
 
-    output reg [7:0] leds,
+    inout [7:0] portb,
+    output reg [7:0] porta,
     output usbpu,
     output led
 );
 
-    // Show data fetched on leds 
-    assign leds = cpu_dat_i;
-    assign led = 1;
-
-    // Disable USB
     assign usbpu = 0;
-
-    // Generate reset
     wire reset = !(&reset_counter);
+
     reg [14:0] reset_counter = 0;
+    reg started = 0;
+
+    reg [31:0] mem_counter = 0;
+    reg old_ready;
+
+    reg dummy_led;
+    reg [7:0] dummy_leds;
+    assign led = !ready;
 
     always @(posedge clock) begin
       if (reset) reset_counter <= reset_counter + 1;
+      else if (ready && !old_ready) begin
+        mem_counter <= mem_counter + 1;
+      end
+      old_ready <= ready;
+      if (!ready) porta <=  ((cpu_adr_o == 16'hffff) ? 8'h56 : 8'h88);
     end
 
     ///////////////////////////////////////////////////////////////////////////
@@ -120,17 +128,62 @@ module mcu (
 
     wb_rom #(
         .WB_DATA_WIDTH(8),
-        .WB_ADDR_WIDTH(12),
-        .ROM_DEPTH(4096)
+        .WB_ADDR_WIDTH(9),
+        .WB_ALWAYS_READ(0),
+        .RAM_DEPTH(512)
     ) main_rom (
         .clk_i(clock),
         .rst_i(reset),
         .stb_i(rom_stb_i),
         .we_i(rom_we_i),
-        .adr_i(rom_adr_i[11:0]),
+        .adr_i(rom_adr_i[8:0]),
         .dat_i(rom_dat_i),
         .ack_o(rom_ack_o),
         .dat_o(rom_dat_o)
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    /// PORTA
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    wire porta_stb_i;
+    wire porta_we_i;
+    wire [15:0] porta_adr_i;
+    wire [7:0] porta_dat_i;
+    wire porta_ack_o = 0;
+    wire [7:0] porta_dat_o = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    /// PORTB
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    wire portb_stb_i;
+    wire portb_we_i;
+    wire [15:0] portb_adr_i;
+    wire [7:0] portb_dat_i;
+    wire portb_ack_o;
+    wire [7:0] portb_dat_o;
+
+    wb_gpio #(
+        .WB_DATA_WIDTH(8),
+        .WB_ADDR_WIDTH(2)
+    ) portb_inst (
+        .clk_i(clock),
+        .rst_i(reset),
+        .stb_i(portb_stb_i),
+        .we_i(portb_we_i),
+        .adr_i(portb_adr_i[1:0]),
+        .dat_i(portb_dat_i),
+        .ack_o(portb_ack_o),
+        .dat_o(portb_dat_o),
+        .led(dummy_led),
+        .gpio(portb)
     );
 
     ///////////////////////////////////////////////////////////////////////////
@@ -143,11 +196,12 @@ module mcu (
     wb_bus #(
         .WB_DATA_WIDTH(8),
         .WB_ADDR_WIDTH(16),
-        .WB_NUM_SLAVES(2)
+        .WB_NUM_SLAVES(4)
     ) bus (
         // syscon
         .clk_i(clock),
         .rst_i(reset),
+        .leds(dummy_leds),
 
         // connection to wishbone master
         .mstr_stb_i(cpu_stb_o),
@@ -157,16 +211,17 @@ module mcu (
         .mstr_ack_o(cpu_ack_i),
         .mstr_dat_o(cpu_dat_i),
 
-        // wishbone slave decode         RAM         ROM 
-        .bus_slv_addr_decode_value({16'h0000,   16'hF000}),
-        .bus_slv_addr_decode_mask ({16'hF000,   16'hF000}),
+        // wishbone slave decode         RAM         ROM       PORTA         PORTB
+        .bus_slv_addr_decode_value({16'h0000,   16'hFE00,   16'hF000,     16'hF004}),
+        .bus_slv_addr_decode_mask ({16'hFE00,   16'hFE00,   16'hFFFC,     16'hFFFC}),
 
         // connection to wishbone slaves
-        .slv_stb_o                ({ram_stb_i,  rom_stb_i}),
-        .slv_we_o                 ({ram_we_i,   rom_we_i}),
-        .slv_adr_o                ({ram_adr_i,  rom_adr_i}),
-        .slv_dat_o                ({ram_dat_i,  rom_dat_i}),
-        .slv_ack_i                ({ram_ack_o,  rom_ack_o}),
-        .slv_dat_i                ({ram_dat_o,  rom_dat_o})
+        .slv_stb_o                ({ram_stb_i,  rom_stb_i,  porta_stb_i,  portb_stb_i}),
+        .slv_we_o                 ({ram_we_i,   rom_we_i,   porta_we_i,   portb_we_i}),
+        .slv_adr_o                ({ram_adr_i,  rom_adr_i,  porta_adr_i,  portb_adr_i}),
+        .slv_dat_o                ({ram_dat_i,  rom_dat_i,  porta_dat_i,  portb_dat_i}),
+        .slv_ack_i                ({ram_ack_o,  rom_ack_o,  porta_ack_o,  portb_ack_o}),
+        .slv_dat_i                ({ram_dat_o,  rom_dat_o,  porta_dat_o,  portb_dat_o})
     );
 endmodule
+

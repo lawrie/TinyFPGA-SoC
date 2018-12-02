@@ -1,0 +1,18 @@
+# Diagnostic Leds
+set_io -nowarn leds[0] D2 # pin 6
+set_io -nowarn leds[1] D1 # pin 7
+set_io -nowarn leds[2] E2 # pin 8
+set_io -nowarn leds[3] E1 # pin 9
+set_io -nowarn leds[4] G2 # pin 10
+set_io -nowarn leds[5] H1 # pin 11
+set_io -nowarn leds[6] J1 # pin 12
+set_io -nowarn leds[7] H2 # pin 13
+
+# LED
+set_io -nowarn led B3
+
+# USB
+set_io -nowarn usbpu A3
+
+# 16MHz clock
+set_io -nowarn clock B2
