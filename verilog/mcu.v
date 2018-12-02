@@ -1,14 +1,30 @@
 module mcu (
     input clock,
 
-    output reg [7:0] leds,
+    //output reg [7:0] leds,
     output usbpu,
-    output led
+
+    output led,
+
+    output lcd_D0,
+    output lcd_D1,
+    output lcd_D2,
+    output lcd_D3,
+    output lcd_D4,
+    output lcd_D5,
+    output lcd_D6,
+    output lcd_D7,
+    output lcd_nreset,
+    output lcd_cmd_data,
+    output lcd_write_edge,
+    output lcd_backlight,
+
+    input [7:0] BUTTONS
 );
 
     // Show data fetched on leds 
-    assign leds = cpu_dat_i;
-    assign led = 1;
+    //assign leds = cpu_dat_i;
+    assign lcd_backlight = 1;
 
     // Disable USB
     assign usbpu = 0;
@@ -74,10 +90,21 @@ module mcu (
         .ready(ready)
     );
 
+    // Button input
+    wire [7:0] buttons;
+
+    SB_IO #(
+      .PIN_TYPE(6'b 0000_01),
+      .PULLUP(1'b 1)
+    ) buttons_input [7:0] (
+      .PACKAGE_PIN(BUTTONS),
+      .D_IN_0(buttons)
+    );
+
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
     ///
-    /// TIA RAM
+    /// TIA
     ///
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
@@ -88,12 +115,7 @@ module mcu (
     wire tia_ack_o;
     wire [7:0] tia_dat_o;
 
-    wb_ram #(
-        .WB_DATA_WIDTH(8),
-        .WB_ADDR_WIDTH(7),
-        .WB_ALWAYS_READ(0),
-        .RAM_DEPTH(128)
-    ) tia_ram (
+    wb_tia tia_ram (
         .clk_i(clock),
         .rst_i(reset),
         .stb_i(tia_stb_i),
@@ -101,13 +123,20 @@ module mcu (
         .adr_i(tia_adr_i[6:0]),
         .dat_i(tia_dat_i),
         .ack_o(tia_ack_o),
-        .dat_o(tia_dat_o)
+        .dat_o(tia_dat_o),
+        .led(led),
+        .buttons(buttons),
+        .nreset(lcd_nreset),
+        .cmd_data(lcd_cmd_data),
+        .write_edge(lcd_write_edge),
+        .dout({lcd_D7, lcd_D6, lcd_D5, lcd_D4,
+               lcd_D3, lcd_D2, lcd_D1, lcd_D0})
     );
 
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
     ///
-    /// PIA RAM
+    /// RAM
     ///
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
@@ -132,6 +161,32 @@ module mcu (
         .dat_i(ram_dat_i),
         .ack_o(ram_ack_o),
         .dat_o(ram_dat_o)
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    /// PIA
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    wire pia_stb_i;
+    wire pia_we_i;
+    wire [15:0] pia_adr_i;
+    wire [7:0] pia_dat_i;
+    wire pia_ack_o;
+    wire [7:0] pia_dat_o;
+
+    wb_pia pia (
+        .clk_i(clock),
+        .rst_i(reset),
+        .stb_i(pia_stb_i),
+        .we_i(pia_we_i),
+        .adr_i(pia_adr_i[6:0]),
+        .dat_i(pia_dat_i),
+        .ack_o(pia_ack_o),
+        .dat_o(pia_dat_o),
+        .buttons(buttons)
     );
 
     ///////////////////////////////////////////////////////////////////////////
@@ -173,7 +228,7 @@ module mcu (
     wb_bus #(
         .WB_DATA_WIDTH(8),
         .WB_ADDR_WIDTH(16),
-        .WB_NUM_SLAVES(3)
+        .WB_NUM_SLAVES(4)
     ) bus (
         // syscon
         .clk_i(clock),
@@ -187,16 +242,16 @@ module mcu (
         .mstr_ack_o(cpu_ack_i),
         .mstr_dat_o(cpu_dat_i),
 
-        // wishbone slave decode         RAM         TIA         ROM
-        .bus_slv_addr_decode_value({16'h0080,   16'h0000,   16'hf000}),
-        .bus_slv_addr_decode_mask ({16'hFF80,   16'hFF80,   16'hf000}),
+        // wishbone slave decode         RAM    PIA         TIA         ROM
+        .bus_slv_addr_decode_value({16'h0080,   16'h0280,   16'h0000,   16'hf000}),
+        .bus_slv_addr_decode_mask ({16'hFF80,   16'hFF80,   16'hFF80,   16'hf000}),
 
         // connection to wishbone slaves
-        .slv_stb_o                ({ram_stb_i,  tia_stb_i,  rom_stb_i}),
-        .slv_we_o                 ({ram_we_i,   tia_we_i,   rom_we_i}),
-        .slv_adr_o                ({ram_adr_i,  tia_adr_i,  rom_adr_i}),
-        .slv_dat_o                ({ram_dat_i,  tia_dat_i,  rom_dat_i}),
-        .slv_ack_i                ({ram_ack_o,  tia_ack_o,  rom_ack_o}),
-        .slv_dat_i                ({ram_dat_o,  tia_dat_o,  rom_dat_o})
+        .slv_stb_o                ({ram_stb_i,  pia_stb_i,  tia_stb_i,  rom_stb_i}),
+        .slv_we_o                 ({ram_we_i,   pia_we_i,   tia_we_i,   rom_we_i}),
+        .slv_adr_o                ({ram_adr_i,  pia_adr_i,  tia_adr_i,  rom_adr_i}),
+        .slv_dat_o                ({ram_dat_i,  pia_dat_i,  tia_dat_i,  rom_dat_i}),
+        .slv_ack_i                ({ram_ack_o,  pia_ack_o,  tia_ack_o,  rom_ack_o}),
+        .slv_dat_i                ({ram_dat_o,  pia_dat_o,  tia_dat_o,  rom_dat_o})
     );
 endmodule

@@ -134,7 +134,7 @@ a9 // lda #$2b
 8d // sta TIM64T
 96
 02
-24 // bit INPt4
+24 // bit INPT4
 0c
 30 // bmi Buuton_Not_Pushed
 02
@@ -210,7 +210,7 @@ ad // Done_Update_Score: Skip_Logic: lda SWCHA
 b4 // .check_stick_loop: ldy P0_y-1, X
 7f
 4a // lsr
-b0 // bcs /not_u[
+b0 // bcs .not_up
 02
 c8 // iny
 c8 // iny
@@ -221,7 +221,7 @@ b0 // bcs .not_down
 88 // dey
 4a // .not_down: lsr
 4a // lsr
-94 // sty P0_Y-1. Y
+94 // sty P0_Y-1, Y
 7f
 48 // pha
 98 // tya

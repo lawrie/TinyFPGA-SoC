@@ -75,14 +75,15 @@ set_io -nowarn BUTTONS[5] A9
 set_io -nowarn BUTTONS[6] C9
 set_io -nowarn BUTTONS[7] D8
 
-set_io -nowarn portb[0] B6
-set_io -nowarn portb[1] A7
-set_io -nowarn portb[2] B7
-set_io -nowarn portb[3] A8
-set_io -nowarn portb[4] B8
-set_io -nowarn portb[5] A9
-set_io -nowarn portb[6] C9
-set_io -nowarn portb[7] D8
+# Diagnostic Leds
+set_io -nowarn leds[0] H9 # pin 6
+set_io -nowarn leds[1] D9 # pin 7
+set_io -nowarn leds[2] D8 # pin 8
+set_io -nowarn leds[3] C9 # pin 9
+set_io -nowarn leds[4] A9 # pin 10
+set_io -nowarn leds[5] B8 # pin 11
+set_io -nowarn leds[6] A8 # pin 12
+set_io -nowarn leds[7] B7 # pin 13
 
 # SD card reader
 set_io -nowarn SD_CS B6          # pin 23
@@ -108,12 +109,12 @@ set_io -nowarn SER_RX G1
 #set_io -nowarn PIN_31 J2
 
 # LED
-set_io -nowarn LED B3
+set_io -nowarn led B3
 
 # USB
 #set_io -nowarn USBP B4
 #set_io -nowarn USBN A4
-set_io -nowarn USBPU A3
+set_io -nowarn usbpu A3
 
 # 16MHz clock
 set_io -nowarn CLK B2 # input

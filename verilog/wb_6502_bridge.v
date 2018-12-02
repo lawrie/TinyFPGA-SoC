@@ -26,7 +26,7 @@ module wb_6502_bridge #(
 );
 
     // Run CPU at 1Hz
-    reg [24:0] clk_div;
+    reg [3:0] clk_div;
 
     // outputs to wb
     assign stb_o = 1; // Always read data from address
