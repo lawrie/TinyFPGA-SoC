@@ -22,6 +22,15 @@ set_io -nowarn lcd_cmd_data H1    # pin 11
 set_io -nowarn lcd_write_edge J1  # pin 12
 set_io -nowarn lcd_backlight H2   # pin 13
 
+set_io BUTTONS[0] G3
+set_io BUTTONS[1] J3
+set_io BUTTONS[2] J4
+set_io BUTTONS[3] G9
+set_io BUTTONS[4] E8
+set_io BUTTONS[5] J2
+set_io BUTTONS[6] A7
+set_io BUTTONS[7] B6
+
 # LED
 set_io -nowarn led B3
 

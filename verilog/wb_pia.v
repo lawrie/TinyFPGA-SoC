@@ -13,16 +13,23 @@ module wb_pia (
 
     output reg                      ack_o,
     output reg [7:0]                dat_o,
-    input [7:0]                     buttons
+
+
+    input [7:0]                     buttons,
+    output                          led,
+    output [7:0]                    leds,
+    input                           ready
 );
 
     wire valid_cmd = !rst_i && stb_i;
     wire valid_write_cmd = valid_cmd && we_i;
     wire valid_read_cmd = valid_cmd && !we_i;
 
-    reg [7:0] timer_64;
+    reg [7:0] intim;
     reg [23:0] time_counter;
-    wire [7:0]  reset_timer;
+    reg [7:0]  reset_timer;
+    reg [10:0] interval;
+    reg reset_interval;
 
     always @(posedge clk_i) begin
         reset_timer <= 0;
@@ -33,30 +40,38 @@ module wb_pia (
           'h01: ; // SWACNT
           'h02: ; // SWCHB
           'h03: ; // SWBCNT
-          'h04: dat_o <= timer_64; // INTIM
+          'h04: begin dat_o <= intim; leds <= intim; end // INTIM
           endcase
         end
 
         if (valid_write_cmd) begin
           case (adr_i)
-          'h14: ; // TIM1T
-          'h15: ; // TIM8T
-          'h16: reset_timer <= dat_i; // TIM64T
-          'h17: ; // T1024T
+          'h14: begin interval <= 1; reset_timer <= dat_i; end // TIM1T
+          'h15: begin interval <= 8; reset_timer <= dat_i; end  // TIM8T
+          'h16: begin led <= 1; leds <= dat_i; interval = 64; reset_timer <= dat_i; end // TIM64T
+          'h17: begin interval = 1024; reset_timer <= dat_i; end // T1024T
           endcase
         end
+
+        if (reset_interval) interval <= 1;
 
         ack_o <= valid_cmd;
     end
 
     always @(posedge clk_i) begin
+      reset_interval <= 0;
+
       if (reset_timer > 0) begin
         time_counter <= 0;
-        timer_64 <= reset_timer;
-      end else time_counter <= time_counter + 1;
+        intim <= reset_timer;
+      end if (ready) begin
+        time_counter <= time_counter + 1;
+      end
 
-      if (&time_counter[9:0]) begin
-        if (timer_64 != 0) timer_64 <= timer_64 - 1;
+      if (time_counter == interval - 1) begin
+        //if (intim == 0) reset_interval <= 1;
+        intim <= intim - 1;
+        time_counter <= 0;
       end
 
     end

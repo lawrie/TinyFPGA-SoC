@@ -78,7 +78,7 @@ ad // Vertical_Blank: lda INTIM
 84
 02
 10 // bpl Vertical-Blank
-01
+fb
 86 // stx VBLANK
 01
 a0 // ldy #192
@@ -136,7 +136,7 @@ a9 // lda #$2b
 02
 24 // bit INPT4
 0c
-30 // bmi Buuton_Not_Pushed
+30 // bmi Button_Not_Pushed
 02
 84 // sty Game
 85
@@ -232,7 +232,7 @@ b0 // bcs .not_down
 68 // pla
 ca // dex
 d0 // bne .check_stick_loop
-06
+e6
 ad // OverScan: lda INTIM
 84
 02

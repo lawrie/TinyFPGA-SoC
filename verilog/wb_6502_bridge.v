@@ -3,7 +3,8 @@
  */
 module wb_6502_bridge #(
     parameter WB_DATA_WIDTH = 8,
-    parameter WB_ADDR_WIDTH = 16
+    parameter WB_ADDR_WIDTH = 16,
+    parameter CLK_DIV_BITS = 4
 ) (
     // wishbone interface
     input                           clk_i,
@@ -26,7 +27,7 @@ module wb_6502_bridge #(
 );
 
     // Run CPU at 1Hz
-    reg [3:0] clk_div;
+    reg [CLK_DIV_BITS-1:0] clk_div;
 
     // outputs to wb
     assign stb_o = 1; // Always read data from address
@@ -40,6 +41,7 @@ module wb_6502_bridge #(
            adr_o <= 0;
            dat_o <= 0;
            we_o <= 0;
+           clk_div <= 0;
         end else begin
           clk_div <= clk_div + 1;
           ready <= (clk_div == 0); // Once per second

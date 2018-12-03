@@ -27,10 +27,12 @@ module wb_tia #(
     // buttons
     input [7:0]                     buttons,
 
-    output                          led
+    output                          led,
+
+    output                          stall_cpu
 );
 
-    assign led = vsync;
+    assign stall_cpu = wsync;
 
     // Button numbers
     localparam UP = 0, RIGHT = 1, LEFT = 2, DOWN = 3,
@@ -64,80 +66,92 @@ module wb_tia #(
     wire valid_write_cmd = valid_cmd && we_i;
     wire valid_read_cmd = valid_cmd && !we_i;
 
+    reg free_cpu;
+
     always @(posedge clk_i) begin
         if (valid_read_cmd) begin
           dat_o <= 0;
           case (adr_i)
-          'h00: ; // CXM0P
-          'h01: ; // CXM1P
-          'h02: ; // CXP0FB
-          'h03: ; // CXP1FB
-          'h04: ; // CXM0FB
-          'h05: ; // CXM1FB
-          'h06: ; // CXBLPF
-          'h07: ; // CXPPMM
-          'h08: dat_o <= inpt0 << 7; // INPT0
-          'h09: dat_o <= inpt1 << 7; // INPT1
-          'h0a: dat_o <= inpt2 << 7; // INPT2
-          'h0b: dat_o <= inpt3 << 7; // INPT3
+          'h00: ;                         // CXM0P
+          'h01: ;                         // CXM1P
+          'h02: ;                         // CXP0FB
+          'h03: ;                         // CXP1FB
+          'h04: ;                         // CXM0FB
+          'h05: ;                         // CXM1FB
+          'h06: ;                         // CXBLPF
+          'h07: ;                         // CXPPMM
+          'h08: dat_o <= inpt0 << 7;      // INPT0
+          'h09: dat_o <= inpt1 << 7;      // INPT1
+          'h0a: dat_o <= inpt2 << 7;      // INPT2
+          'h0b: dat_o <= inpt3 << 7;      // INPT3
           'h0c: dat_o <= buttons[A] << 7; // INPT4
-          'h0d: dat_o <= inpt5 << 7; // INPT5
+          'h0d: dat_o <= inpt5 << 7;      // INPT5
           endcase
         end
 
+        if (free_cpu) wsync <= 0;
+
         if (valid_write_cmd) begin
           case (adr_i) 
-          'h00: vsync <= dat_i[1];  // VSYNC
-          'h01: vblank <= dat_i[1]; // VBLANK
-          'h02: wsync <= 1;  // WSYNC
-          'h03: ; // RSYNC
-          'h04: nusiz0 <= dat_i; // NUSIZ0
-          'h05: nusiz1 <= dat_i; // NUSIZ1
-          'h06: colup0 <= dat_i[6:0]; // COLUP0
-          'h07: colup1 <= dat_i[6:0]; // COLUP1
-          'h08: colupf <= dat_i[6:0]; // COLUPPF
-          'h09: colubk <= dat_i[6:0]; // COLUPBK
-          'h0a: ctrlpf <= dat_i; // CTRLPF
-          'h0b: refp0 <= dat_i[3]; // REFP0
-          'h0c: refp1 <= dat_i[3]; // REFP1
-          'h0d: pf[16:19] <= dat_i[7:4]; // PF0
-          'h0e: pf[15:8] <= dat_i; // PF1
-          'h0f: pf[0:7] <= dat_i; // PF2
-          'h10: x_p0 <= xpos >> 1; // RESP0
-          'h11: x_p1 <= xpos >> 1; // RESP1
-          'h12: x_m0 <= xpos >> 1; // RESM0
-          'h13: x_m1 <= xpos >> 1; // RESM1
-          'h14: x_bl <= xpos >> 1; // RESBL
-          'h15: audc0 <= dat_i[3:0]; // AUDC0
-          'h16: audc1 <= dat_i[3:0]; // AUDC1
-          'h17: audf0 <= dat_i[4:0]; // AUDF0
-          'h18: audf1 <= dat_i[4:0] ; // AUDF1
-          'h19: audv0 <= dat_i[3:0]; // AUDV0
-          'h1a: audv1 <= dat_i[3:0]; // AUDV1
-          'h1b: grp0 <= dat_i; // GRP0
-          'h1c: grp1 <= dat_i; // GRP1
-          'h1d: enam0 <= dat_i[1]; // ENAM0
-          'h1d: enam1 <= dat_i[1]; // ENAM1
-          'h1f: enabl <= dat_i[1]; // ENABL
-          'h20: hmp0 <= dat_i[3:0]; // HMP0
-          'h21: hmp1 <= dat_i[3:0]; // HMP1
-          'h22: hmm0 <= dat_i[3:0]; // HMM0
-          'h23: hmm1 <= dat_i[3:0]; // HMM1
-          'h24: hmbl <= dat_i[3:0]; // HMBL
-          'h25: vdelp0 <= dat_i[0]; // VDELP0
-          'h26: vdelp1 <= dat_i[0]; // VDELP1
-          'h27: vdelbl <= dat_i[0]; // VDELBL
-          'h28: ; // RESMP0
-          'h29: ; // RESMP1
-          'h2a: begin  // HMOVE
+          'h00: vsync <= dat_i[1];        // VSYNC
+          'h01: begin                     // VBLANK 
+                 vblank <= dat_i[1]; 
+                 if (dat_i[1] == 0) led <= !led;  
+                end
+          'h02: wsync <= 1;               // WSYNC
+          'h03: ;                         // RSYNC
+          'h04: nusiz0 <= dat_i;          // NUSIZ0
+          'h05: nusiz1 <= dat_i;          // NUSIZ1
+          'h06: colup0 <= dat_i[6:0];     // COLUP0
+          'h07: colup1 <= dat_i[6:0];     // COLUP1
+          'h08: colupf <= dat_i[6:0];     // COLUPPF
+          'h09: colubk <= dat_i[6:0];     // COLUPBK
+          'h0a: ctrlpf <= dat_i;          // CTRLPF
+          'h0b: refp0 <= dat_i[3];        // REFP0
+          'h0c: refp1 <= dat_i[3];        // REFP1
+          'h0d: pf[16:19] <= dat_i[7:4];  // PF0
+          'h0e: pf[15:8] <= dat_i;        // PF1
+          'h0f: pf[0:7] <= dat_i;         // PF2
+          'h10: x_p0 <= xpos >> 1;        // RESP0
+          'h11: x_p1 <= xpos >> 1;        // RESP1
+          'h12: x_m0 <= xpos >> 1;        // RESM0
+          'h13: x_m1 <= xpos >> 1;        // RESM1
+          'h14: x_bl <= xpos >> 1;        // RESBL
+          'h15: audc0 <= dat_i[3:0];      // AUDC0
+          'h16: audc1 <= dat_i[3:0];      // AUDC1
+          'h17: audf0 <= dat_i[4:0];      // AUDF0
+          'h18: audf1 <= dat_i[4:0] ;     // AUDF1
+          'h19: audv0 <= dat_i[3:0];      // AUDV0
+          'h1a: audv1 <= dat_i[3:0];      // AUDV1
+          'h1b: grp0 <= dat_i;            // GRP0
+          'h1c: grp1 <= dat_i;            // GRP1
+          'h1d: begin enam0 <= dat_i[1]; if (dat_i[1]) led <= 1; end        // ENAM0
+          'h1d: begin enam1 <= dat_i[1]; if (dat_i[1]) led <= 1; end       // ENAM1
+          'h1f: begin enabl <= dat_i[1]; if (dat_i[1]) led <= 1; end       // ENABL
+          'h20: hmp0 <= dat_i[3:0];       // HMP0
+          'h21: hmp1 <= dat_i[3:0];       // HMP1
+          'h22: hmm0 <= dat_i[3:0];       // HMM0
+          'h23: hmm1 <= dat_i[3:0];       // HMM1
+          'h24: hmbl <= dat_i[3:0];       // HMBL
+          'h25: vdelp0 <= dat_i[0];       // VDELP0
+          'h26: vdelp1 <= dat_i[0];       // VDELP1
+          'h27: vdelbl <= dat_i[0];       // VDELBL
+          'h28: ;                         // RESMP0
+          'h29: ;                         // RESMP1
+          'h2a: begin                     // HMOVE
                   x_p0 <= x_p0 + $signed(hmp0);
                   x_p1 <= x_p1 + $signed(hmp1);
                   x_m0 <= x_m0 + $signed(hmm0);
                   x_m1 <= x_m1 + $signed(hmm1);
                   x_bl <= x_bl + $signed(hmbl);
                 end
-          'h2b: begin hmp0 <= 0; hmp1 <= 0; hmm0 <= 0; hmm1 <= 0; hmbl <= 0; end // HMCLR
-          'h2c: cx <= 0; // CXCLR
+          'h2b: begin hmp0 <= 0;          // HMCLR
+                  hmp1 <= 0;  
+                  hmm0 <= 0;  
+                  hmm1 <= 0;  
+                  hmbl <= 0; 
+                end
+          'h2c: cx <= 0;                  // CXCLR
           endcase
         end
 
@@ -169,6 +183,8 @@ module wb_tia #(
                 );
 
    always @(posedge clk_i) begin
+      free_cpu <= 0;
+
       if (enam0) color <= colup0;
       else if (enam1 && x_m1 == (xpos >> 1)) color <= colup1;
       else color <= colubk;
@@ -182,7 +198,7 @@ module wb_tia #(
                ypos <= ypos + 2;
             end else begin
                ypos <= 0;
-               wsync <= 0;
+               free_cpu <= 1;
                xpos <= xpos - 1;
             end
 

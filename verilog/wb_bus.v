@@ -4,7 +4,7 @@
 module wb_bus #(
     parameter WB_DATA_WIDTH = 8,
     parameter WB_ADDR_WIDTH = 16,
-    parameter WB_NUM_SLAVES = 1
+    parameter WB_NUM_SLAVES = 4
 ) (
     // syscon
     input                                       clk_i,

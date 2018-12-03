@@ -1,4 +1,4 @@
-PIN_FILE = pcb.pcf
+PIN_FILE = pins.pcf
 
 upload: hardware.bin
 	tinyprog -p hardware.bin
