@@ -22,12 +22,12 @@ module mcu (
     input [7:0] BUTTONS
 );
 
+    //assign led = stall_cpu;
+
     // Show data fetched on leds 
     assign lcd_backlight = 1;
-    reg dummy_led;
     reg [7:0] dummy_leds;
-
-    //assign led = stall_cpu;
+    reg dummy_led, dummy_led2;
 
     // Disable USB
     assign usbpu = 0;
@@ -39,7 +39,7 @@ module mcu (
     always @(posedge clock) begin
       if (reset) reset_counter <= reset_counter + 1;
 
-      if (ram_stb_i && !ram_we_i && ram_adr_i == 'h80) leds <= ram_dat_o;
+      if (rom_stb_i) leds <= rom_dat_o;
     end
 
     ///////////////////////////////////////////////////////////////////////////
@@ -69,7 +69,7 @@ module mcu (
         .WE(write_enable),
         .IRQ(irq),
         .NMI(nmi),
-        .RDY(ready && !stall_cpu)
+        .RDY(ready)
     );
 
     // 6502 wishbone interface
@@ -81,7 +81,7 @@ module mcu (
     wire [7:0] cpu_dat_i;
     
     wb_6502_bridge #(
-        .CLK_DIV_BITS(9)
+        .CLK_DIV_BITS(4)
     ) wb_6502_bridge_inst (
         .clk_i(clock),
         .rst_i(reset),
@@ -132,7 +132,7 @@ module mcu (
         .dat_i(tia_dat_i),
         .ack_o(tia_ack_o),
         .dat_o(tia_dat_o),
-        .led(led),
+        .led(dummy_led),
         .buttons(buttons),
         .stall_cpu(stall_cpu),
         .nreset(lcd_nreset),
@@ -198,7 +198,7 @@ module mcu (
         .buttons(buttons),
         .ready(ready),
         .leds(dummy_leds),
-        .led(dummy_led)
+        .led(dummy_led2)
     );
 
     ///////////////////////////////////////////////////////////////////////////

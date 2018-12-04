@@ -32,13 +32,13 @@ module wb_tia #(
     output                          stall_cpu
 );
 
-    assign stall_cpu = wsync;
+    //assign stall_cpu = wsync;
 
     // Button numbers
     localparam UP = 0, RIGHT = 1, LEFT = 2, DOWN = 3,
                A = 4, B = 5, X = 6, y = 7;
 
-    reg [15:0] colors [0:127];
+    reg [15:0] colors [0:128];
     reg [6:0] colubk, colup0, colup1, colupf;
     reg vsync, vblank, wsync, enam0, enam1, enabl, vdelbl, vdelp0, vdelp1;
     reg refp0, refp1;
@@ -55,20 +55,149 @@ module wb_tia #(
 
     initial begin
       colors['h00] <= 16'h0000;
-      colors['h0e] <= 16'hFFFF;
-      colors['h1e] <= 16'hE761;
-      colors['h46] <= 16'hA065;
+      colors['h01] <= 16'h18E3;
+      colors['h02] <= 16'h39c7;
+      colors['h03] <= 16'h5ACB;
+      colors['h04] <= 16'h840F;
+      colors['h05] <= 16'hA534;
+      colors['h06] <= 16'hD6BA;
+      colors['h07] <= 16'hFFFF;
+      colors['h08] <= 16'h3900;
+      colors['h09] <= 16'h61C0;
+      colors['h0a] <= 16'h8260;
+      colors['h0b] <= 16'hA420;
+      colors['h0c] <= 16'hC4E0;
+      colors['h0d] <= 16'hE5A0;
+      colors['h0e] <= 16'hE761;
+      colors['h0f] <= 16'hE761;
+      colors['h10] <= 16'h1800;
+      colors['h11] <= 16'h1800;
+      colors['h12] <= 16'h1800;
+      colors['h13] <= 16'h1800;
+      colors['h14] <= 16'h1800;
+      colors['h15] <= 16'h1800;
+      colors['h16] <= 16'h1800;
+      colors['h17] <= 16'h8860;
+      colors['h18] <= 16'h8860;
+      colors['h19] <= 16'h8860;
+      colors['h1a] <= 16'h8860;
+      colors['h1b] <= 16'h8860;
+      colors['h1c] <= 16'h8860;
+      colors['h1d] <= 16'h8860;
+      colors['h1e] <= 16'h8860;
+      colors['h1f] <= 16'h1001;
+      colors['h20] <= 16'h1001;
+      colors['h21] <= 16'h1001;
+      colors['h22] <= 16'hA065;
+      colors['h23] <= 16'hA065;
+      colors['h24] <= 16'h1001;
+      colors['h25] <= 16'h1001;
+      colors['h26] <= 16'h1001;
+      colors['h27] <= 16'h1001;
+      colors['h28] <= 16'h1001;
+      colors['h29] <= 16'h1001;
+      colors['h2a] <= 16'h1001;
+      colors['h2b] <= 16'h1001;
+      colors['h2c] <= 16'h1001;
+      colors['h2d] <= 16'h1001;
+      colors['h2e] <= 16'h1001;
+      colors['h2f] <= 16'h1001;
+      colors['h30] <= 16'h1001;
+      colors['h31] <= 16'h1001;
+      colors['h32] <= 16'h1001;
+      colors['h33] <= 16'h1001;
+      colors['h34] <= 16'h1001;
+      colors['h35] <= 16'h1001;
+      colors['h36] <= 16'h1001;
+      colors['h37] <= 16'h1001;
+      colors['h38] <= 16'h1001;
+      colors['h39] <= 16'h1001;
+      colors['h3a] <= 16'h1001;
+      colors['h3b] <= 16'h1001;
+      colors['h3c] <= 16'h1001;
+      colors['h3d] <= 16'h1001;
+      colors['h3e] <= 16'h1001;
+      colors['h3f] <= 16'h1001;
+      colors['h40] <= 16'h1001;
+      colors['h41] <= 16'h1001;
+      colors['h42] <= 16'h1001;
+      colors['h43] <= 16'h1001;
+      colors['h44] <= 16'h1001;
+      colors['h45] <= 16'h1001;
+      colors['h46] <= 16'h1001;
+      colors['h47] <= 16'h1001;
+      colors['h48] <= 16'h1001;
+      colors['h49] <= 16'h1001;
+      colors['h4a] <= 16'h1001;
+      colors['h4b] <= 16'h1001;
+      colors['h4c] <= 16'h1001;
+      colors['h4d] <= 16'h1001;
+      colors['h4e] <= 16'h1001;
+      colors['h4f] <= 16'h1001;
+      colors['h50] <= 16'h1001;
+      colors['h51] <= 16'h1001;
+      colors['h52] <= 16'h1001;
+      colors['h53] <= 16'h1001;
+      colors['h54] <= 16'h1001;
+      colors['h55] <= 16'h1001;
+      colors['h56] <= 16'h1001;
+      colors['h57] <= 16'h1001;
+      colors['h58] <= 16'h1001;
+      colors['h59] <= 16'h1001;
+      colors['h5a] <= 16'h1001;
+      colors['h5b] <= 16'h1001;
+      colors['h5c] <= 16'h1001;
+      colors['h5d] <= 16'h1001;
+      colors['h5e] <= 16'h1001;
+      colors['h5f] <= 16'h1001;
+      colors['h60] <= 16'h1001;
+      colors['h61] <= 16'h1001;
+      colors['h62] <= 16'h1001;
+      colors['h63] <= 16'h1001;
+      colors['h64] <= 16'h1001;
+      colors['h65] <= 16'h1001;
+      colors['h66] <= 16'h1001;
+      colors['h67] <= 16'h1001;
+      colors['h68] <= 16'h1001;
+      colors['h69] <= 16'h1001;
+      colors['h6a] <= 16'h1001;
+      colors['h6b] <= 16'h1001;
+      colors['h6c] <= 16'h1001;
+      colors['h6d] <= 16'h1001;
+      colors['h6e] <= 16'h1001;
+      colors['h6f] <= 16'h1001;
+      colors['h70] <= 16'h1001;
+      colors['h71] <= 16'h1001;
+      colors['h72] <= 16'h1001;
+      colors['h73] <= 16'h1001;
+      colors['h74] <= 16'h1001;
+      colors['h75] <= 16'h1001;
+      colors['h76] <= 16'h1001;
+      colors['h77] <= 16'h1001;
+      colors['h78] <= 16'h1001;
+      colors['h79] <= 16'h1001;
+      colors['h7a] <= 16'h1001;
+      colors['h7b] <= 16'h1001;
+      colors['h7c] <= 16'h1001;
+      colors['h7d] <= 16'h1001;
+      colors['h7e] <= 16'h1001;
 
-      colubk = 'h1e;
+      colupf = 'h0f;
+      pf = 'hf0f0f;
+      colubk = 0;
     end
 
     wire valid_cmd = !rst_i && stb_i;
     wire valid_write_cmd = valid_cmd && we_i;
     wire valid_read_cmd = valid_cmd && !we_i;
 
-    reg free_cpu;
+    reg free_cpu, do_sync, done_sync;
+
+    integer i;
 
     always @(posedge clk_i) begin
+        if (done_sync) do_sync <= 0;
+
         if (valid_read_cmd) begin
           dat_o <= 0;
           case (adr_i)
@@ -93,7 +222,7 @@ module wb_tia #(
 
         if (valid_write_cmd) begin
           case (adr_i) 
-          'h00: vsync <= dat_i[1];        // VSYNC
+          'h00: begin; vsync <= dat_i[1]; if (dat_i[1]) do_sync <= 0; end  // VSYNC
           'h01: begin                     // VBLANK 
                  vblank <= dat_i[1]; 
                  if (dat_i[1] == 0) led <= !led;  
@@ -102,16 +231,16 @@ module wb_tia #(
           'h03: ;                         // RSYNC
           'h04: nusiz0 <= dat_i;          // NUSIZ0
           'h05: nusiz1 <= dat_i;          // NUSIZ1
-          'h06: colup0 <= dat_i[6:0];     // COLUP0
-          'h07: colup1 <= dat_i[6:0];     // COLUP1
-          'h08: colupf <= dat_i[6:0];     // COLUPPF
-          'h09: colubk <= dat_i[6:0];     // COLUPBK
+          'h06: colup0 <= dat_i[7:1];     // COLUP0
+          'h07: colup1 <= dat_i[7:1];     // COLUP1
+          'h08: colupf <= dat_i[7:1];     // COLUPPF
+          'h09: colubk <= dat_i[7:1];     // COLUPBK
           'h0a: ctrlpf <= dat_i;          // CTRLPF
           'h0b: refp0 <= dat_i[3];        // REFP0
           'h0c: refp1 <= dat_i[3];        // REFP1
-          'h0d: pf[16:19] <= dat_i[7:4];  // PF0
-          'h0e: pf[15:8] <= dat_i;        // PF1
-          'h0f: pf[0:7] <= dat_i;         // PF2
+          'h0d: for(i = 0; i<4; i = i + 1) pf[i] <= dat_i[4+i];   // PF0
+          'h0e: for(i = 0; i<8; i = i + 1) pf[4+i] <= dat_i[7-i];   // PF1
+          'h0f: for(i = 0; i<8; i = i + 1) pf[12+i] = dat_i[i]; // PF2
           'h10: x_p0 <= xpos >> 1;        // RESP0
           'h11: x_p1 <= xpos >> 1;        // RESP1
           'h12: x_m0 <= xpos >> 1;        // RESM0
@@ -167,7 +296,6 @@ module wb_tia #(
    reg        reset_cursor = 0;
    wire       busy;
    reg [15:0] pix_data;
-   reg [6:0] color;
 
    ili9341 lcd (
                 .resetn(resetn),
@@ -184,16 +312,11 @@ module wb_tia #(
 
    always @(posedge clk_i) begin
       free_cpu <= 0;
+      done_sync = 0;
 
-      if (enam0) color <= colup0;
-      else if (enam1 && x_m1 == (xpos >> 1)) color <= colup1;
-      else color <= colubk;
-
-      if ( busy == 0 && pix_clk == 0) begin
+      if (busy == 0 && pix_clk == 0) begin
  
-         pix_data <= (ypos >= 48 & ypos < 432 ? colors[color] : 0);
-
-         if (xpos > 0) begin
+         if ((!do_sync) && xpos > 0) begin
             if (ypos < 478) begin
                ypos <= ypos + 2;
             end else begin
@@ -202,11 +325,16 @@ module wb_tia #(
                xpos <= xpos - 1;
             end
 
+            pix_data <= colors[(xpos < 160 ? 
+                       (pf[xpos >> 3] ? colupf : colubk) :
+                       (pf[(319 - xpos) >> 3] ? colupf : colubk))];
+
             pix_clk <= 1;
 
          end else begin
             xpos <= 319;
             reset_cursor <= 1;
+            done_sync <= 1;
          end
 
       end else begin
