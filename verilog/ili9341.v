@@ -84,7 +84,7 @@ module ili9341 (
 
       // Memory Access Control
       INIT_SEQ[34] <= {1'b0, 8'h36};
-      INIT_SEQ[35] <= {1'b1, 8'h08};
+      INIT_SEQ[35] <= {1'b1, 8'he8};
       INIT_SEQ[36] <= {1'b0, 8'h3A};
       INIT_SEQ[37] <= {1'b1, 8'h55};
 
@@ -156,15 +156,15 @@ module ili9341 (
       CURSOR_SEQ[0] <= {1'b0, 8'h2A};
       CURSOR_SEQ[1] <= {1'b1, 8'h00};
       CURSOR_SEQ[2] <= {1'b1, 8'h00};
-      CURSOR_SEQ[3] <= {1'b1, 8'h00};
-      CURSOR_SEQ[4] <= {1'b1, 8'hEF};
+      CURSOR_SEQ[3] <= {1'b1, 8'h01};
+      CURSOR_SEQ[4] <= {1'b1, 8'h3F};
 
       // Page Address
       CURSOR_SEQ[5] <= {1'b0, 8'h2B};
       CURSOR_SEQ[6] <= {1'b1, 8'h00};
       CURSOR_SEQ[7] <= {1'b1, 8'h00};
-      CURSOR_SEQ[8] <= {1'b1, 8'h01};
-      CURSOR_SEQ[9] <= {1'b1, 8'h3F};
+      CURSOR_SEQ[8] <= {1'b1, 8'h00};
+      CURSOR_SEQ[9] <= {1'b1, 8'hEF};
 
       CURSOR_SEQ[10] <= {1'b0, 8'h2C}; // Start Memory-Write
 

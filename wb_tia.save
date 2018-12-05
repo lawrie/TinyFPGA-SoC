@@ -316,13 +316,13 @@ module wb_tia #(
       pix_clk <= 0;
 
       if (busy == 0 && pix_clk == 0) begin
-         if (ypos < 261) begin // 228 x 2 = 456 pixels width
-            if (xpos < 455)  begin // 262 pixels depth
-               xpos <= xpos + 1;
-            end else begin
-               xpos <= 0;
-               free_cpu <= 1;
+         if (xpos < 455) begin // 228 x 2 = 456 pixels width
+            if (ypos < 261) begin // 262 pixels depth
                ypos <= ypos + 1;
+            end else begin
+               ypos <= 0;
+               free_cpu <= 1;
+               xpos <= xpos + 1;
             end
             
             if (ypos < 240 && xpos < 320) begin
@@ -335,7 +335,7 @@ module wb_tia #(
               pix_clk <= 1;
            end
          end else begin
-            ypos <= 0;
+            xpos <= 0;
             done_sync <= 1;
          end
       end
